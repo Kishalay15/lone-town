@@ -34,8 +34,34 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const toggleFreeze = async (req, res) => {
+  const { userId, reason } = req.body;
+
+  try {
+    const result = await userService.toggleFreeze(userId, reason);
+
+    res.status(200).json({
+      success: true,
+      message:
+        result.state === "frozen"
+          ? "User frozen for 24h."
+          : "User is now available.",
+      ...result,
+    });
+  } catch (error) {
+    console.error("toggleFreeze error:", error.message);
+    const status = error.message.includes("cannot unfreeze")
+      ? 403
+      : error.message.includes("not found")
+      ? 404
+      : 400;
+    res.status(status).json({ success: false, message: error.message });
+  }
+};
+
 export default {
   registerUser,
   loginUser,
   updateUserProfile,
+  toggleFreeze,
 };

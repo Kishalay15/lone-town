@@ -7,5 +7,6 @@ const router = express.Router();
 router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 router.put("/users/:id", verifyToken, userController.updateUserProfile);
+router.post("/users/freeze-toggle", userController.toggleFreeze);
 
 export default router;

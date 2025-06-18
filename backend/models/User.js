@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
   matchStartTime: { type: Date },
   messageCount: { type: Number, default: 0 },
   messageMilestoneReached: { type: Boolean, default: false },
+  freezeReason: { type: String, default: null },
 });
 
 export default mongoose.model("User", UserSchema);

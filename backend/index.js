@@ -11,6 +11,10 @@ import winston from "winston";
 import configureSocket from "./sockets/socket.js";
 import userRoutes from "./routes/userRoutes.js";
 import matchRoutes from "./routes/matchRoutes.js";
+import freezeManager from "./cron/freezeManager.js";
+import milestoneTracker from "./cron/milestoneTracker.js";
+import { setIO } from "./sockets/ioInstance.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 dotenv.config();
 
@@ -38,15 +42,18 @@ const io = new Server(server, {
 
 app.use(bodyParser.json());
 app.use(cors());
+app.use(express.json());
 
 connectDB();
-
+setIO(io);
 configureSocket(io);
 
-app.use(express.json());
+freezeManager();
+milestoneTracker();
 
 app.use("/api", userRoutes);
 app.use("/api", matchRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 dailyMatchmaker()
   .then(() => console.log("Daily matchmaking complete"))
