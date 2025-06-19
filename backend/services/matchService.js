@@ -10,7 +10,11 @@ const getMatches = async (userId) => {
     "name email"
   );
 
-  return matches;
+  return matches.map((match) => {
+    const matchObj = match.toObject();
+    matchObj.unreadCount = match.unreadCounts?.get(userId) || 0;
+    return matchObj;
+  });
 };
 
 const sendMessage = async (matchId, senderId, content) => {

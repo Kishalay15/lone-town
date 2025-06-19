@@ -26,6 +26,11 @@ const MatchSchema = new mongoose.Schema({
     default: "active",
   },
   firstMessageTimestamp: { type: Date },
+  unreadCounts: {
+    type: Map,
+    of: Number,
+    default: {},
+  },
 });
 
 export default mongoose.model("Match", MatchSchema);

@@ -1,13 +1,18 @@
 import Match from "../models/Match.js";
 import User from "../models/User.js";
 import notificationService from "../services/notificationService.js";
+import messageService from "../services/messageService.js";
 
 const configureSocket = (io) => {
   io.on("connection", (socket) => {
     console.log(`⚡️ New client connected: ${socket.id}`);
 
-    socket.on("joinMatchRoom", ({ matchId, userId }) => {
+    socket.on("joinMatchRoom", async ({ matchId, userId }) => {
+      socket.data.userId = userId;
       socket.join(matchId);
+
+      await messageService.markMessagesAsRead(matchId, userId);
+
       console.log(`User ${userId} joined match room ${matchId}`);
       io.to(matchId).emit("userJoined", { userId });
     });
@@ -26,6 +31,16 @@ const configureSocket = (io) => {
         };
 
         match.messages.push(message);
+
+        match.unreadCounts = match.unreadCounts || new Map();
+
+        for (const u of match.users) {
+          const uid = u._id.toString();
+          if (uid !== senderId) {
+            match.unreadCounts.set(uid, (match.unreadCounts.get(uid) || 0) + 1);
+          }
+        }
+
         await match.save();
 
         io.to(matchId).emit("newMessage", { matchId, message });

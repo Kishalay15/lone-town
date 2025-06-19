@@ -59,9 +59,20 @@ const toggleFreeze = async (req, res) => {
   }
 };
 
+const getUserAnalytics = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("analytics");
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user.analytics);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 export default {
   registerUser,
   loginUser,
   updateUserProfile,
   toggleFreeze,
+  getUserAnalytics,
 };

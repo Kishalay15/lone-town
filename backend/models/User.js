@@ -19,6 +19,13 @@ const UserSchema = new mongoose.Schema({
   messageCount: { type: Number, default: 0 },
   messageMilestoneReached: { type: Boolean, default: false },
   freezeReason: { type: String, default: null },
+  analytics: {
+    initiations: { type: Number, default: 0 },
+    unpins: { type: Number, default: 0 },
+    freezes: { type: Number, default: 0 },
+    avgReplyTime: { type: Number, default: 0 },
+    replyCount: { type: Number, default: 0 },
+  },
 });
 
 export default mongoose.model("User", UserSchema);
