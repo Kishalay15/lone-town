@@ -1,11 +1,11 @@
 import userService from "../services/userService.js";
+import User from "../models/User.js";
 
 const registerUser = async (req, res) => {
   try {
-    const userData = req.body;
-    const user = await userService.registerUser(userData);
+    const { token, user } = await userService.registerUser(req.body);
 
-    res.status(201).json({ success: true, user });
+    res.status(201).json({ success: true, token, user });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -14,7 +14,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const token = await userService.loginUser(email, password);
+    const { token, user } = await userService.loginUser(email, password);
 
     res.status(200).json({ success: true, token, user });
   } catch (error) {
@@ -25,6 +25,14 @@ const loginUser = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   try {
     const userId = req.params.id;
+
+    console.log("Decoded userId from token:", req.user.userId);
+    console.log("User ID from URL params:", userId);
+
+    if (req.user.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
     const userData = req.body;
     const updatedUser = await userService.updateUserProfile(userId, userData);
 

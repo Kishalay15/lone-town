@@ -13,7 +13,11 @@ const registerUser = async (userData) => {
 
   const { password: _, ...userWithoutPassword } = newUser.toObject();
 
-  return userWithoutPassword;
+  const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+
+  return { token, user: userWithoutPassword };
 };
 
 const loginUser = async (email, password) => {
