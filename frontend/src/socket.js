@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const URL = "http://localhost:9090";
+const URL = import.meta.env.VITE_SOCKET_URL;
 const socket = io(URL, {
   autoConnect: false,
   reconnection: true,

@@ -19,6 +19,7 @@ export default function Matches() {
                 const res = await axios.get("/matches", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+                console.log("Fetched matches response:", res.data);
                 setMatches(res.data);
             } catch (err) {
                 console.error("Failed to fetch matches", err);
@@ -29,6 +30,7 @@ export default function Matches() {
 
         fetchMatches();
     }, []);
+
 
     const handleUnpin = async (matchId) => {
         try {

@@ -2,7 +2,7 @@ import axios from "axios";
 import logout from "../utils/logout";
 
 const instance = axios.create({
-  baseURL: "http://localhost:9090/api",
+  baseURL: import.meta.env.VITE_APP_BASE_URL,
 });
 
 let isRefreshing = false;
@@ -54,7 +54,7 @@ instance.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          "http://localhost:9090/api/refresh-token",
+          `${import.meta.env.VITE_APP_BASE_URL}/refresh-token`,
           {
             refreshToken: localStorage.getItem("refreshToken"),
           }
