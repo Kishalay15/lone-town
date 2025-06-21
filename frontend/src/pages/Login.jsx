@@ -14,9 +14,12 @@ export default function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
+
         try {
-            const { token, user } = await loginUser(email, password);
-            localStorage.setItem("token", token);
+            const { accessToken, refreshToken, user } = await loginUser(email, password); // ✅ fixed destructuring
+
+            localStorage.setItem("token", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
             localStorage.setItem("user", JSON.stringify(user));
 
             socket.auth = { userId: user._id };
@@ -37,8 +40,6 @@ export default function Login() {
             setError(msg);
         }
     };
-
-
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-purple-50">

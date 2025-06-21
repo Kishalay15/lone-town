@@ -7,6 +7,10 @@ export const registerUser = async (userData) => {
     body: JSON.stringify(userData),
   });
   const data = await res.json();
+  localStorage.setItem("token", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
+  localStorage.setItem("user", JSON.stringify(data.user));
+
   if (!res.ok) throw new Error(data.message || "Registration failed");
   return data;
 };
@@ -18,6 +22,10 @@ export const loginUser = async (email, password) => {
     body: JSON.stringify({ email, password }),
   });
   const data = await res.json();
+  localStorage.setItem("token", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
+  localStorage.setItem("user", JSON.stringify(data.user));
+
   if (!res.ok) throw new Error(data.message || "Login failed");
   return data;
 };

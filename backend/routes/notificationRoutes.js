@@ -1,9 +1,10 @@
 import express from "express";
 import notificationController from "../controllers/notificationController.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/:userId", notificationController.getNotifications);
-router.post("/mark-read/:userId", notificationController.markAsRead);
+router.get("/", verifyToken, notificationController.getNotifications);
+router.post("/mark-read", verifyToken, notificationController.markAsRead);
 
 export default router;

@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
+import toast from "react-hot-toast";
 
 export default function Matches() {
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showFeedbackFor, setShowFeedbackFor] = useState(null); // matchId
+    const [feedbackText, setFeedbackText] = useState("");
+    const [submitting, setSubmitting] = useState(false);
     const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem("user"));
 
     useEffect(() => {
         const fetchMatches = async () => {
@@ -25,6 +30,46 @@ export default function Matches() {
         fetchMatches();
     }, []);
 
+    const handleUnpin = async (matchId) => {
+        try {
+            await axios.post("/unpin", {
+                matchId,
+                userId: user._id,
+            });
+            toast.success("Match unpinned.");
+            setMatches((prev) =>
+                prev.map((m) =>
+                    m._id === matchId ? { ...m, pinned: false } : m
+                )
+            );
+            setShowFeedbackFor(matchId);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to unpin.");
+        }
+    };
+
+    const handleSubmitFeedback = async () => {
+        if (!feedbackText.trim()) return;
+        setSubmitting(true);
+        try {
+            const match = matches.find((m) => m._id === showFeedbackFor);
+            const otherUser = match.users.find((u) => u._id !== user._id);
+            await axios.post("/feedback", {
+                matchId: match._id,
+                from: user._id,
+                to: otherUser._id,
+                reason: feedbackText.trim(),
+            });
+            toast.success("Feedback submitted.");
+            setShowFeedbackFor(null);
+            setFeedbackText("");
+        } catch (err) {
+            toast.error("Feedback failed");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
@@ -35,7 +80,6 @@ export default function Matches() {
             </div>
         );
     }
-
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
@@ -51,7 +95,7 @@ export default function Matches() {
                         Back to Dashboard
                     </button>
                 </div>
-                {/* Header */}
+
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-2">
                         Your Matches
@@ -75,7 +119,7 @@ export default function Matches() {
                     <div className="space-y-4">
                         {matches.map((match) => {
                             const otherUser = match.users.find(
-                                (u) => u._id !== JSON.parse(localStorage.getItem("user"))._id
+                                (u) => u._id !== user._id
                             );
                             return (
                                 <div
@@ -85,13 +129,11 @@ export default function Matches() {
                                     <div className="p-6">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center space-x-4">
-                                                {/* Avatar placeholder */}
                                                 <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center">
                                                     <span className="text-white font-bold text-xl">
                                                         {otherUser.name.charAt(0).toUpperCase()}
                                                     </span>
                                                 </div>
-
                                                 <div>
                                                     <h3 className="font-bold text-xl text-gray-800 mb-1">
                                                         {otherUser.name}
@@ -106,25 +148,24 @@ export default function Matches() {
                                                     )}
                                                 </div>
                                             </div>
-
-                                            <button
-                                                onClick={() => {
-                                                    navigate(`/chat/${match._id}`)
-                                                    console.log('Navigate to chat:', match._id);
-                                                }}
-                                                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-200 shadow-lg"
-                                            >
-                                                <div className="flex items-center space-x-2">
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                                    </svg>
-                                                    <span>Chat</span>
-                                                </div>
-                                            </button>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <button
+                                                    onClick={() => navigate(`/chat/${match._id}`)}
+                                                    className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-6 py-2 rounded-xl transition-all duration-200 transform hover:scale-105 shadow"
+                                                >
+                                                    Chat
+                                                </button>
+                                                {match.pinned && (
+                                                    <button
+                                                        onClick={() => handleUnpin(match._id)}
+                                                        className="text-sm text-red-500 hover:text-red-700 underline"
+                                                    >
+                                                        Unpin Match
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {/* Subtle bottom border for visual separation */}
                                     <div className="h-1 bg-gradient-to-r from-purple-200 via-indigo-200 to-purple-200"></div>
                                 </div>
                             );
@@ -132,6 +173,37 @@ export default function Matches() {
                     </div>
                 )}
             </div>
+
+            {/* Feedback Modal */}
+            {showFeedbackFor && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                        <h2 className="text-xl font-bold text-purple-700 mb-3">Tell us why you unpinned</h2>
+                        <textarea
+                            rows={4}
+                            value={feedbackText}
+                            onChange={(e) => setFeedbackText(e.target.value)}
+                            placeholder="Optional feedback..."
+                            className="w-full p-3 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        ></textarea>
+                        <div className="mt-4 flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowFeedbackFor(null)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmitFeedback}
+                                disabled={submitting}
+                                className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+                            >
+                                {submitting ? "Sending..." : "Submit"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

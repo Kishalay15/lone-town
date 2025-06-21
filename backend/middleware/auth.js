@@ -8,19 +8,19 @@ export const verifyToken = (req, res, next) => {
   console.log("Extracted token:", token);
 
   if (!token) {
-    console.log("❌ No token provided");
+    console.log("No token provided");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("✅ Token decoded successfully:", decoded);
+    console.log("Token decoded successfully:", decoded);
 
     req.user = decoded;
     req.userId = decoded.userId;
     next();
   } catch (err) {
-    console.error("❌ Token verification failed:", err.message);
+    console.error("Token verification failed:", err.message);
     res.status(403).json({ message: "Invalid token" });
   }
 };

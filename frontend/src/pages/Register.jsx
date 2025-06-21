@@ -17,8 +17,11 @@ export default function Register() {
     e.preventDefault();
     setError("");
     try {
-      const { user } = await registerUser(form);
+      const { accessToken, refreshToken, user } = await registerUser(form);
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("user", JSON.stringify(user));
+
       navigate("/onboarding");
     } catch (err) {
       setError(err.message);

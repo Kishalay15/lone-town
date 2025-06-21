@@ -5,6 +5,16 @@ import jwt from "jsonwebtoken";
 import { getIO } from "../sockets/ioInstance.js";
 import { FREEZE_DURATION_MS } from "../config/constants.js";
 
+const generateTokens = (userId) => {
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
+  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+  return { accessToken, refreshToken };
+};
+
 const registerUser = async (userData) => {
   const { password } = userData;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -14,31 +24,22 @@ const registerUser = async (userData) => {
 
   const { password: _, ...userWithoutPassword } = newUser.toObject();
 
-  const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
+  const { accessToken, refreshToken } = generateTokens(newUser._id);
 
-  return { token, user: userWithoutPassword };
+  return { token: { accessToken, refreshToken }, user: userWithoutPassword };
 };
 
-const loginUser = async (email, password) => {
+const loginUser = async ({ email, password }) => {
   const user = await User.findOne({ email });
-  if (!user) {
-    throw new Error("User not found");
-  }
+  if (!user) throw new Error("User not found");
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new Error("Invalid password");
-  }
+  if (!isPasswordValid) throw new Error("Invalid password");
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
-
+  const { accessToken, refreshToken } = generateTokens(user._id);
   const { password: _, ...userWithoutPassword } = user.toObject();
 
-  return { token, user: userWithoutPassword };
+  return { token: { accessToken, refreshToken }, user: userWithoutPassword };
 };
 
 const updateUserProfile = async (userId, userData) => {

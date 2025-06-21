@@ -10,5 +10,6 @@ router.put("/users/:id", verifyToken, userController.updateUserProfile);
 router.post("/users/freeze-toggle", userController.toggleFreeze);
 router.get("/:id/analytics", userController.getUserAnalytics);
 router.get("/:id/analytics/refresh", userController.refreshUserAnalytics);
+router.post("/refresh-token", userController.refreshAccessToken);
 
 export default router;

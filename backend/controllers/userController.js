@@ -4,8 +4,12 @@ import User from "../models/User.js";
 const registerUser = async (req, res) => {
   try {
     const { token, user } = await userService.registerUser(req.body);
-
-    res.status(201).json({ success: true, token, user });
+    res.status(201).json({
+      success: true,
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      user,
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -13,10 +17,13 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const { token, user } = await userService.loginUser(email, password);
-
-    res.status(200).json({ success: true, token, user });
+    const { token, user } = await userService.loginUser(req.body);
+    res.status(200).json({
+      success: true,
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      user,
+    });
   } catch (error) {
     res.status(401).json({ success: false, message: error.message });
   }
@@ -97,6 +104,24 @@ const refreshUserAnalytics = async (req, res) => {
   }
 };
 
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken)
+    return res.status(401).json({ message: "Refresh token missing" });
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const newAccessToken = jwt.sign(
+      { userId: decoded.userId },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    res.status(403).json({ message: "Invalid refresh token" });
+  }
+};
+
 export default {
   registerUser,
   loginUser,
@@ -104,4 +129,5 @@ export default {
   toggleFreeze,
   getUserAnalytics,
   refreshUserAnalytics,
+  refreshAccessToken,
 };

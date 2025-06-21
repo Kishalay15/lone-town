@@ -157,7 +157,7 @@ const getMatchById = async (req, res) => {
       messages: match.messages || [],
     });
   } catch (err) {
-    console.error("Error in getMatchById:", err); // 🪵 Add error logging
+    console.error("Error in getMatchById:", err);
     res.status(500).json({ message: "Failed to fetch match" });
   }
 };

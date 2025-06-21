@@ -2,8 +2,9 @@ import notificationService from "../services/notificationService.js";
 
 const getNotifications = async (req, res) => {
   try {
+    const userId = req.user.userId; // from verifyToken middleware
     const notifications = await notificationService.getUserNotifications(
-      req.params.userId
+      userId
     );
     res.json({ success: true, notifications });
   } catch (err) {
@@ -13,7 +14,8 @@ const getNotifications = async (req, res) => {
 
 const markAsRead = async (req, res) => {
   try {
-    await notificationService.markAllAsRead(req.params.userId);
+    const userId = req.user.userId;
+    await notificationService.markAllAsRead(userId);
     res.json({ success: true, message: "All notifications marked as read" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
