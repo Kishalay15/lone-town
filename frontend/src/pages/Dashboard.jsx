@@ -7,11 +7,13 @@ import ProfileCard from "../components/ProfileCard";
 import TraitsCard from "../components/TraitsCard";
 import AnalyticsCard from "../components/AnalyticsCard";
 import useLogout from "../utils/logout";
+import NotificationPanel from "../components/NotificationsPanel";
 
 export default function Dashboard() {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const [freezeLoading, setFreezeLoading] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
     const logout = useLogout();
 
     const fetchLatestAnalytics = async () => {
@@ -111,6 +113,13 @@ export default function Dashboard() {
                         Dashboard
                     </h1>
                     <button
+                        onClick={() => setShowNotifications(true)}
+                        className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition"
+                    >
+                        Notifications
+                    </button>
+
+                    <button
                         onClick={logout}
                         className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
                     >
@@ -159,17 +168,9 @@ export default function Dashboard() {
                             onToggleFreeze={handleToggleFreeze}
                             freezeLoading={freezeLoading}
                         />
-                        {/* <button
-                            onClick={fetchLatestAnalytics}
-                            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                        >
-                            Refresh Analytics
-                        </button> */}
-
                     </div>
                 </div>
 
-                {/* Welcome Message */}
                 <div className="bg-gradient-to-r from-purple-100 via-indigo-100 to-pink-100 rounded-3xl p-8 border-2 border-white/30 shadow-xl backdrop-blur-sm">
                     <div className="text-center">
                         <div className="mb-4">
@@ -188,6 +189,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+            {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
         </div>
     );
 }
