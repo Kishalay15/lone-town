@@ -1,25 +1,59 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2, LogOut, LayoutDashboard, MessageCircle, Heart } from "lucide-react";
 import axios from "../api/axios";
 import toast from "react-hot-toast";
+import ProfileCard from "../components/ProfileCard";
+import TraitsCard from "../components/TraitsCard";
+import AnalyticsCard from "../components/AnalyticsCard";
+import useLogout from "../utils/logout";
 
 export default function Dashboard() {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const [freezeLoading, setFreezeLoading] = useState(false);
+    const logout = useLogout();
+
+    const fetchLatestAnalytics = async () => {
+        try {
+            const res = await axios.get(`/${user._id}/analytics/refresh`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            });
+
+            const updatedUser = {
+                ...user,
+                messageCount: res.data.messageCount,
+                analytics: res.data.analytics,
+            };
+
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+        } catch (err) {
+            console.error("Failed to refresh analytics", err);
+        }
+    };
 
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (!storedUser) return navigate("/login");
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (!storedUser) return navigate("/login");
 
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+            const parsedUser = JSON.parse(storedUser);
+            if (!parsedUser?._id) return navigate("/login");
+
+            setUser(parsedUser);
+        } catch {
+            navigate("/login");
+        }
     }, [navigate]);
 
-    if (!user) return <div className="text-center mt-20">Loading...</div>;
+    useEffect(() => {
+        if (user && user._id) {
+            fetchLatestAnalytics();
+        }
+    }, [user?._id]);
 
-    const { name, email, state, emotionalIntelligence, behavioralPatterns, psychologicalTraits, relationshipValues, analytics } = user;
 
     const handleToggleFreeze = async () => {
         setFreezeLoading(true);
@@ -33,15 +67,12 @@ export default function Dashboard() {
                     },
                 }
             );
-
             toast.success(res.data.message);
-
             const updatedUser = {
                 ...user,
                 state: res.data.state,
                 freezeEndTime: res.data.freezeEndTime || null,
             };
-
             setUser(updatedUser);
             localStorage.setItem("user", JSON.stringify(updatedUser));
         } catch (err) {
@@ -51,71 +82,111 @@ export default function Dashboard() {
         }
     };
 
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-purple-100 flex items-center justify-center">
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-12 flex flex-col items-center gap-6 border border-white/20">
+                    <div className="relative">
+                        <Loader2 className="animate-spin h-12 w-12 text-purple-600" />
+                        <div className="absolute inset-0 h-12 w-12 rounded-full bg-purple-100 animate-pulse"></div>
+                    </div>
+                    <div className="text-center">
+                        <h3 className="text-xl font-semibold text-purple-800 mb-2">Loading Dashboard</h3>
+                        <p className="text-purple-600">Preparing your profile...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-purple-50 p-6 flex flex-col items-center gap-6">
-            {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6">
-                <h2 className="text-xl font-bold text-purple-700 mb-2">👤 Profile</h2>
-                <p><strong>Name:</strong> {name}</p>
-                <p><strong>Email:</strong> {email}</p>
-                <p>
-                    <strong>Status:</strong>{" "}
-                    <span className={state === "available" ? "text-green-600" : "text-red-600"}>
-                        {state}
-                    </span>
-                </p>
-                <button
-                    onClick={() => navigate("/edit-profile")}
-                    className="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-                >
-                    Edit Profile
-                </button>
-            </div>
-
-            {/* Traits Card */}
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6">
-                <h2 className="text-xl font-bold text-purple-700 mb-4">🧠 Traits & Values</h2>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p>Emotional Intelligence: {emotionalIntelligence}</p>
-                    <p>Introversion: {behavioralPatterns?.introversion}</p>
-                    <p>Openness: {psychologicalTraits?.openness}</p>
-                    <p>Neuroticism: {psychologicalTraits?.neuroticism}</p>
-                    <p>Honesty: {relationshipValues?.honesty}</p>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-pink-50">
+            {/* Header */}
+            <div className="bg-white/80 backdrop-blur-xl shadow-xl border-b border-white/20 sticky top-0 z-20">
+                <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-800 to-indigo-800 bg-clip-text text-transparent flex items-center gap-3">
+                        <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-2">
+                            <LayoutDashboard className="w-8 h-8 text-white" />
+                        </div>
+                        Dashboard
+                    </h1>
+                    <button
+                        onClick={logout}
+                        className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-2 transition-all duration-300 hover:shadow-xl transform hover:scale-105"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        Logout
+                    </button>
                 </div>
             </div>
 
-            {/* Analytics Card */}
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6">
-                <h2 className="text-xl font-bold text-purple-700 mb-4">📊 Activity Analytics</h2>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <p>Messages Sent: {user.messageCount}</p>
-                    <p>Avg Reply Time: {analytics?.avgReplyTime}s</p>
-                    <p>Unpins: {analytics?.unpins}</p>
-                    <p>Freezes: {analytics?.freezes}</p>
-                    <p>Initiations: {analytics?.initiations}</p>
+            <div className="max-w-7xl mx-auto p-8 space-y-10">
+
+                {/* Profile Card */}
+                <div className="transform hover:scale-[1.01] transition-transform duration-500">
+                    <ProfileCard
+                        user={user}
+                        onEditProfile={() => navigate("/edit-profile")}
+                    />
                 </div>
-                <button
-                    onClick={handleToggleFreeze}
-                    disabled={freezeLoading}
-                    className={`mt-4 px-4 py-2 rounded-lg text-white ${state === "available"
-                        ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-gray-600 hover:bg-gray-700"
-                        } ${freezeLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                    {freezeLoading
-                        ? "Processing..."
-                        : state === "available"
-                            ? "Enter Reflection Freeze"
-                            : "Unfreeze (if time passed)"}
-                </button>
+                {/* Enhanced Matches Button */}
+                <div className="flex justify-center">
+                    <button
+                        onClick={() => navigate("/matches")}
+                        className="group relative bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:from-pink-600 hover:via-purple-700 hover:to-indigo-700 text-white px-12 py-6 rounded-3xl font-bold text-xl transition-all duration-500 hover:shadow-2xl transform hover:scale-110 flex items-center gap-4 min-w-[350px] justify-center"
+                    >
+                        <div className="relative">
+                            <MessageCircle className="w-8 h-8 group-hover:scale-125 transition-transform duration-500" />
+                            <Heart className="w-4 h-4 absolute -top-2 -right-2 text-pink-200 group-hover:text-pink-100 transition-colors duration-500 animate-pulse" />
+                        </div>
+                        <span>View Your Matches</span>
+                        <div className="absolute inset-0 bg-white/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 rounded-3xl blur opacity-30 group-hover:opacity-60 transition-opacity duration-500 -z-10"></div>
+                    </button>
+                </div>
 
-                {state === "frozen" && user.freezeEndTime && (
-                    <p className="text-sm text-gray-500 mt-2">
-                        Will unfreeze at: <strong>{new Date(user.freezeEndTime).toLocaleString()}</strong>
-                    </p>
-                )}
+                {/* Cards Grid */}
+                <div className="grid lg:grid-cols-2 gap-8">
+                    {/* Traits Card */}
+                    <div className="transform hover:scale-[1.02] transition-transform duration-300">
+                        <TraitsCard user={user} />
+                    </div>
 
+                    {/* Analytics Card */}
+                    <div className="transform hover:scale-[1.02] transition-transform duration-300">
+                        <AnalyticsCard
+                            user={user}
+                            onToggleFreeze={handleToggleFreeze}
+                            freezeLoading={freezeLoading}
+                        />
+                        {/* <button
+                            onClick={fetchLatestAnalytics}
+                            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                        >
+                            Refresh Analytics
+                        </button> */}
+
+                    </div>
+                </div>
+
+                {/* Welcome Message */}
+                <div className="bg-gradient-to-r from-purple-100 via-indigo-100 to-pink-100 rounded-3xl p-8 border-2 border-white/30 shadow-xl backdrop-blur-sm">
+                    <div className="text-center">
+                        <div className="mb-4">
+                            <span className="text-4xl">{user.state === 'available' ? '🌟' : '⏸️'}</span>
+                        </div>
+                        <p className="text-lg text-purple-700 font-medium leading-relaxed">
+                            Your profile is <span className="font-bold">{user.state === 'available' ? 'active and visible' : 'currently frozen'}</span>.
+                            <br />
+                            <span className="text-purple-600">
+                                {user.state === 'available'
+                                    ? '✨ You\'re ready to connect with new matches!'
+                                    : '🧘‍♀️ Take your time to reflect and return when ready.'
+                                }
+                            </span>
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );

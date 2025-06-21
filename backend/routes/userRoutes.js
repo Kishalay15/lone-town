@@ -9,5 +9,6 @@ router.post("/login", userController.loginUser);
 router.put("/users/:id", verifyToken, userController.updateUserProfile);
 router.post("/users/freeze-toggle", userController.toggleFreeze);
 router.get("/:id/analytics", userController.getUserAnalytics);
+router.get("/:id/analytics/refresh", userController.refreshUserAnalytics);
 
 export default router;

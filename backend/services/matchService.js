@@ -28,7 +28,7 @@ const sendMessage = async (matchId, senderId, content) => {
   const newMessage = {
     sender: senderId,
     content: content.trim(),
-    timeStamp: new Date(),
+    timestamp: new Date().toISOString(),
   };
 
   match.messages.push(newMessage);

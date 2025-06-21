@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
+import socket from "../socket";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -15,12 +18,27 @@ export default function Login() {
             const { token, user } = await loginUser(email, password);
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(user));
+
+            socket.auth = { userId: user._id };
+            socket.connect();
+
+            socket.on("connect", () => {
+                console.log("Socket connected:", socket.id);
+            });
+
+            socket.on("disconnect", (reason) => {
+                console.warn("Socket disconnected:", reason);
+            });
+
+            login();
             navigate("/dashboard");
         } catch (err) {
             const msg = err.response?.data?.message || err.message;
             setError(msg);
         }
     };
+
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-purple-50">

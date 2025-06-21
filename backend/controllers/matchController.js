@@ -2,10 +2,40 @@ import matchService from "../services/matchService.js";
 import { getIO } from "../sockets/ioInstance.js";
 import User from "../models/User.js";
 import notificationService from "../services/notificationService.js";
+import Match from "../models/Match.js";
+
+const createMatch = async (req, res) => {
+  const { user1, user2 } = req.body;
+
+  if (!user1 || !user2) {
+    return res.status(400).json({ message: "User IDs required" });
+  }
+
+  try {
+    const existing = await Match.findOne({ users: { $all: [user1, user2] } });
+    if (existing)
+      return res.status(400).json({ message: "Match already exists" });
+
+    const match = await Match.create({
+      users: [user1, user2],
+      messages: [],
+      pinned: true,
+      status: "active",
+      unreadCounts: {
+        [user1]: 0,
+        [user2]: 0,
+      },
+    });
+
+    res.status(201).json({ message: "Match created", match });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 const getMatches = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.userId;
     if (!userId) return res.status(400).json({ message: "User ID required" });
 
     const matches = await matchService.getMatches(userId);
@@ -108,6 +138,30 @@ const unlockVideoCall = async (req, res) => {
   }
 };
 
+const getMatchById = async (req, res) => {
+  try {
+    const { matchId } = req.params;
+    console.log("Fetching match with ID:", matchId); // 🪵 Add logging
+
+    const match = await Match.findById(matchId).populate("users", "name _id");
+
+    if (!match) {
+      console.log("Match not found");
+      return res.status(404).json({ message: "Match not found" });
+    }
+
+    console.log("Match found:", match);
+
+    res.status(200).json({
+      match,
+      messages: match.messages || [],
+    });
+  } catch (err) {
+    console.error("Error in getMatchById:", err); // 🪵 Add error logging
+    res.status(500).json({ message: "Failed to fetch match" });
+  }
+};
+
 export default {
   getMatches,
   sendMessage,
@@ -115,4 +169,6 @@ export default {
   unpinMatch,
   giveFeedback,
   unlockVideoCall,
+  getMatchById,
+  createMatch,
 };

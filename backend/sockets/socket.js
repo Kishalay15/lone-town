@@ -27,7 +27,7 @@ const configureSocket = (io) => {
         const message = {
           sender: senderId,
           content: content.trim(),
-          timeStamp: new Date(),
+          timestamp: new Date(),
         };
 
         match.messages.push(message);

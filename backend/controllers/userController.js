@@ -77,10 +77,31 @@ const getUserAnalytics = async (req, res) => {
   }
 };
 
+const refreshUserAnalytics = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const stats = await userService.computeUserAnalytics(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Analytics refreshed",
+      analytics: stats.analytics,
+      messageCount: stats.messageCount,
+    });
+  } catch (err) {
+    console.error("Error refreshing analytics:", err.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to refresh analytics" });
+  }
+};
+
 export default {
   registerUser,
   loginUser,
   updateUserProfile,
   toggleFreeze,
   getUserAnalytics,
+  refreshUserAnalytics,
 };

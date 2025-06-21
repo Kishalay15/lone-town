@@ -29,7 +29,7 @@ const recordReplyTime = async (matchId, senderId, timestamp) => {
   const lastMsg = match.messages[match.messages.length - 2];
   if (!lastMsg || lastMsg.sender.toString() === senderId.toString()) return;
 
-  const replyDelay = new Date(timestamp) - new Date(lastMsg.timeStamp);
+  const replyDelay = new Date(timestamp) - new Date(lastMsg.timestamp);
   const replyMinutes = replyDelay / (1000 * 60);
 
   const user = await User.findById(senderId);

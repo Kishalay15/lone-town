@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Match from "../models/Match.js";
 import jwt from "jsonwebtoken";
 import { getIO } from "../sockets/ioInstance.js";
 import { FREEZE_DURATION_MS } from "../config/constants.js";
@@ -113,9 +114,72 @@ const toggleFreeze = async (userId, reason) => {
   throw new Error(`Cannot toggle freeze from state: ${user.state}`);
 };
 
+const computeUserAnalytics = async (userId) => {
+  const matches = await Match.find({ users: userId });
+
+  let messageCount = 0;
+  let replyCount = 0;
+  let replyTimeTotal = 0;
+  let initiations = 0;
+
+  for (const match of matches) {
+    const messages = match.messages.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    );
+
+    // Count messages sent by user
+    const userMessages = messages.filter((m) => m.sender.toString() === userId);
+    messageCount += userMessages.length;
+
+    // Count initiations
+    if (messages[0]?.sender?.toString() === userId) {
+      initiations += 1;
+    }
+
+    // Compute reply time
+    for (let i = 1; i < messages.length; i++) {
+      const prev = messages[i - 1];
+      const curr = messages[i];
+
+      if (
+        prev.sender.toString() !== userId &&
+        curr.sender.toString() === userId
+      ) {
+        const diffSec =
+          (new Date(curr.timestamp) - new Date(prev.timestamp)) / 1000;
+        replyTimeTotal += diffSec;
+        replyCount += 1;
+      }
+    }
+  }
+  const avgReplyTime = replyCount ? Math.round(replyTimeTotal / replyCount) : 0;
+
+  const user = await User.findById(userId);
+  if (user) {
+    user.messageCount = messageCount;
+    user.analytics.initiations = initiations;
+    user.analytics.replyCount = replyCount;
+    user.analytics.avgReplyTime = avgReplyTime;
+
+    await user.save();
+  }
+
+  return {
+    messageCount,
+    analytics: {
+      initiations,
+      replyCount,
+      avgReplyTime,
+      freezes: user?.analytics?.freezes || 0,
+      unpins: user?.analytics?.unpins || 0,
+    },
+  };
+};
+
 export default {
   registerUser,
   loginUser,
   updateUserProfile,
   toggleFreeze,
+  computeUserAnalytics,
 };
