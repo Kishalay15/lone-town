@@ -33,8 +33,8 @@ const updateUserProfile = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    console.log("Decoded userId from token:", req.user.userId);
-    console.log("User ID from URL params:", userId);
+    // console.log("Decoded userId from token:", req.user.userId);
+    // console.log("User ID from URL params:", userId);
 
     if (req.user.userId !== userId) {
       return res.status(403).json({ success: false, message: "Forbidden" });

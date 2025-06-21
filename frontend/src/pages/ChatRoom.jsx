@@ -27,11 +27,11 @@ export default function ChatRoom() {
     useEffect(() => {
         const fetchMessages = async () => {
             try {
-                console.log("Current Match ID:", matchId);
+                // console.log("Current Match ID:", matchId);
                 const res = await axios.get(`/match/${matchId}`);
                 setMessages(res.data.messages || []);
 
-                console.log("Fetched match data:", res.data.match);
+                // console.log("Fetched match data:", res.data.match);
 
                 setMatchInfo(res.data.match || null);
             } catch (err) {
@@ -92,10 +92,10 @@ export default function ChatRoom() {
             senderId: user._id,
             content,
         };
-        console.log("Message to send:", message);
+        // console.log("Message to send:", message);
         console.log("Socket connected?", socket.connected);
         socket.emit("sendMessage", message);
-        console.log("Sending message:", content);
+        // console.log("Sending message:", content);
     };
 
     const handleUnpin = async () => {

@@ -2,7 +2,7 @@ import notificationService from "../services/notificationService.js";
 
 const getNotifications = async (req, res) => {
   try {
-    const userId = req.user.userId; // from verifyToken middleware
+    const userId = req.user.userId;
     const notifications = await notificationService.getUserNotifications(
       userId
     );

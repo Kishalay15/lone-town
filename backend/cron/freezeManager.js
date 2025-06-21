@@ -30,7 +30,7 @@ const freezeManager = () => {
             "You're now available again and eligible for matching."
           );
 
-          console.log(`User ${user.name} (${user._id}) has been unfrozen.`);
+          console.log(`User ${user.name} has been unfrozen.`);
         }
       }
     } catch (error) {

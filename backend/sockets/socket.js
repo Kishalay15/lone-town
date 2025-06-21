@@ -5,7 +5,7 @@ import messageService from "../services/messageService.js";
 
 const configureSocket = (io) => {
   io.on("connection", (socket) => {
-    console.log(`⚡️ New client connected: ${socket.id}`);
+    console.log(`New client connected`);
 
     socket.on("joinMatchRoom", async ({ matchId, userId }) => {
       socket.data.userId = userId;
@@ -13,7 +13,7 @@ const configureSocket = (io) => {
 
       await messageService.markMessagesAsRead(matchId, userId);
 
-      console.log(`User ${userId} joined match room ${matchId}`);
+      console.log(`User joined match room ${matchId}`);
       io.to(matchId).emit("userJoined", { userId });
     });
 
@@ -86,7 +86,7 @@ const configureSocket = (io) => {
     });
 
     socket.on("disconnect", () => {
-      console.log(`Client disconnected: ${socket.id}`);
+      console.log(`Client disconnected:`);
     });
   });
 };

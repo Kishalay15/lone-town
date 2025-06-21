@@ -141,7 +141,7 @@ const unlockVideoCall = async (req, res) => {
 const getMatchById = async (req, res) => {
   try {
     const { matchId } = req.params;
-    console.log("Fetching match with ID:", matchId); // 🪵 Add logging
+    // console.log("Fetching match with ID:", matchId); // 🪵 Add logging
 
     const match = await Match.findById(matchId).populate("users", "name _id");
 
@@ -150,7 +150,7 @@ const getMatchById = async (req, res) => {
       return res.status(404).json({ message: "Match not found" });
     }
 
-    console.log("Match found:", match);
+    console.log("Match found:");
 
     res.status(200).json({
       match,

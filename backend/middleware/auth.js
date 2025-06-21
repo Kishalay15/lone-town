@@ -2,10 +2,10 @@ import jwt from "jsonwebtoken";
 
 export const verifyToken = (req, res, next) => {
   const rawHeader = req.headers.authorization;
-  console.log("Authorization header:", rawHeader);
+  // console.log("Authorization header:", rawHeader);
 
   const token = rawHeader?.split(" ")[1];
-  console.log("Extracted token:", token);
+  // console.log("Extracted token:", token);
 
   if (!token) {
     console.log("No token provided");
@@ -14,13 +14,13 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Token decoded successfully:", decoded);
+    // console.log("Token decoded successfully:", decoded);
 
     req.user = decoded;
     req.userId = decoded.userId;
     next();
   } catch (err) {
-    console.error("Token verification failed:", err.message);
+    console.error("Token verification failed:");
     res.status(403).json({ message: "Invalid token" });
   }
 };

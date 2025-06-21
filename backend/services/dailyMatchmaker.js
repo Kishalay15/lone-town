@@ -51,7 +51,7 @@ const dailyMatchmaker = async () => {
         );
 
         console.log(
-          `Matched ${user.name} (${user._id}) with ${bestMatch.name} (${bestMatch._id})`
+          `Matched ${user.name} with ${bestMatch.name}`
         );
       }
     }

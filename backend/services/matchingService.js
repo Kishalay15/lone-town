@@ -49,7 +49,6 @@ const findBestMatch = async (user) => {
   const potentialMatches = await User.find({
     _id: { $ne: user._id },
     state: "available",
-    // Additional filters can be added here
   });
 
   let bestMatch = null;
