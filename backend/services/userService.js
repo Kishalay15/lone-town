@@ -4,6 +4,7 @@ import Match from "../models/Match.js";
 import jwt from "jsonwebtoken";
 import { getIO } from "../sockets/ioInstance.js";
 import { FREEZE_DURATION_MS } from "../config/constants.js";
+import notificationService from "./notificationService.js";
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
