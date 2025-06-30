@@ -2,7 +2,7 @@ import Notification from "../models/Notification.js";
 import { getIO } from "../sockets/ioInstance.js";
 
 const createNotification = async (userId, type, message, options = {}) => {
-  const notifications = new Notification({
+  const notification = new Notification({
     user: userId,
     type,
     message,
